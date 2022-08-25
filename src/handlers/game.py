@@ -63,6 +63,8 @@ async def leave(msg: Message, state: FSMContext) -> None:
     if room.owner == msg.from_user.id:
         return
 
+    room.users.remove(user)
+
     await bot.send_message(
         room.owner,
         text.LEAVE.format(
