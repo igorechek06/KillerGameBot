@@ -47,6 +47,10 @@ async def full_name(msg: Message, state: FSMContext) -> None:
 async def stopgame_wait(msg: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         room = rooms[data["room_id"]]
+        rooms.pop(data["room_id"])
+
+    if room.owner != msg.from_user.id:
+        return
 
     for user in room.users:
         await bot.send_message(user.id, text.GAME_STOPED)
@@ -65,9 +69,11 @@ async def leave(msg: Message, state: FSMContext) -> None:
 
     room.users.remove(user)
 
-    await bot.send_message(
+    await msg.reply(text.LEAVE)
+    await bot.send_photo(
         room.owner,
-        text.LEAVE.format(
+        user.photo,
+        caption=text.USER_LEAVE.format(
             full_name=user.full_name,
             id=msg.from_user.id,
         ),
@@ -89,18 +95,10 @@ async def fail(msg: Message, state: FSMContext) -> None:
     await msg.reply(
         text.FAIL_ACCEPT,
         reply_markup=IM().add(
-            IB(text.FAIL_ACCEPT_BTN, callback_data="fail"),
-            IB(text.FAIL_ACCEPT_BTN, callback_data="fail"),
+            IB(text.FAIL_ACCEPT_BTN, callback_data="fail:accept"),
+            IB(text.FAIL_DECLINE_BTN, callback_data="decline"),
         ),
     )
-
-
-@dp.callback_query_handler(
-    lambda clb: clb.data == "fail:decline",
-    state=GameState.game,
-)
-async def fail_decline(clb: CallbackQuery) -> None:
-    await clb.message.delete()
 
 
 @dp.callback_query_handler(
@@ -110,7 +108,8 @@ async def fail_decline(clb: CallbackQuery) -> None:
 async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
     await clb.message.delete_reply_markup()
     async with state.proxy() as data:
-        room = rooms[data["room_id"]]
+        room_id = data["room_id"]
+        room = rooms[room_id]
 
     user = room.get(clb.from_user.id)
     killer = user.killer
@@ -132,6 +131,9 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
 
         for user in room.users:
             await bot.send_message(user.id, t)
+
+        rooms.pop(room_id)
+
     elif killer is not None:
         await clb.message.answer(text.FAIL.format(kills=user.kills))
 
@@ -151,6 +153,14 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
 
     await state.finish()
     await bot.delete_my_commands(BotCommandScopeChat(clb.from_user.id))
+
+
+@dp.callback_query_handler(
+    lambda clb: clb.data == "decline",
+    state=GameState.game,
+)
+async def fail_decline(clb: CallbackQuery) -> None:
+    await clb.message.delete()
 
 
 @dp.message_handler(commands=["target"], state=GameState.game)

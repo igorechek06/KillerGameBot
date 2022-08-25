@@ -16,20 +16,24 @@ FULL_NAME_ERR = f"""Это не похоже на ФИО. {FULL_NAME}"""
 
 CANCEL = """Действие отменено."""
 
-JOIN = """Ты присоеденился к игре, а теперь жди пока она начнётся.
+JOIN = """Ты присоеденился к игре.
 /invite - Получить инвайт ссылку
 /leave - Выйти из игры"""
 
-NEW_JOIN = (
+LEAVE = """Ты вышел из игры.
+/rules - Правила
+/create - Создать игру"""
+
+USER_JOIN = (
     """Новый игрок присоеденился: <a href=\"tg://user?id={id}\">{full_name}</a>"""
 )
-
-LEAVE = """Игрок вышел из игры: <a href=\"tg://user?id={id}\">{full_name}</a>"""
+USER_LEAVE = """Игрок вышел из игры: <a href=\"tg://user?id={id}\">{full_name}</a>"""
 
 CREATE = """Игра была создана.
 /startgame - Начать игру.
 /stopgame - Отменить игру.
-/invite - Получить инвайт ссылку"""
+/invite - Получить инвайт ссылку.
+<code>{room_id}</code> - ID комнаты."""
 
 INVITE = """<code>https://t.me/ru_killer_game_bot?start={room_id}</code>"""
 

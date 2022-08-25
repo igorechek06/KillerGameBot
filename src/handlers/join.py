@@ -59,7 +59,10 @@ async def full_name(msg: Message, state: FSMContext) -> None:
         await bot.send_photo(
             room.owner,
             user.photo,
-            caption=text.NEW_JOIN.format(full_name=user.full_name, id=user.id),
+            caption=text.USER_JOIN.format(
+                full_name=user.full_name,
+                id=user.id,
+            ),
         )
 
     async with state.proxy() as data:
