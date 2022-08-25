@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "killergamebot"
+version = "0.1.0"
+description = "Killer game telegram bot"
+authors = ["Your Name <you@example.com>"]
+license = "GPL3-only"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiogram = "^2.22.1"
+
+[tool.poetry.dev-dependencies]
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+
+[tool.isort]
+profile = "black"
+filter_files = true
