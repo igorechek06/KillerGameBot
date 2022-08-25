@@ -45,7 +45,7 @@ async def full_name(msg: Message, state: FSMContext) -> None:
     await GameState.first()
 
     if create:
-        await msg.reply(text.CREATE.format(uuid=room_id))
+        await msg.reply(text.CREATE.format(room_id=room_id))
     else:
         await msg.reply(text.JOIN)
         await bot.send_photo(
