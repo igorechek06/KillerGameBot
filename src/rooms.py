@@ -1,3 +1,3 @@
-from lib.room import Room
+from libs.room import Room
 
 rooms: dict[str, Room] = {}

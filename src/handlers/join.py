@@ -4,10 +4,10 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ContentType, Message
 
 from bot import bot, dp
-from lib import text
-from lib.room import Room
-from lib.states import GameState, JoinState
-from lib.user import User
+from libs import text
+from libs.room import Room
+from libs.states import GameState, JoinState
+from libs.user import User
 from rooms import rooms
 
 

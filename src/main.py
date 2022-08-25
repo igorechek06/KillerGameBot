@@ -2,8 +2,8 @@ import logging
 
 from aiogram.utils.executor import start_polling
 
-import lib
 import handlers
+import libs
 from bot import dp
 
 logging.basicConfig(level=logging.INFO)

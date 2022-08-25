@@ -5,8 +5,8 @@ from aiogram.types import InlineKeyboardMarkup as IM
 from aiogram.types import Message
 
 from bot import bot, dp
-from lib import text
-from lib.states import GameState
+from libs import text
+from libs.states import GameState
 from rooms import rooms
 
 
