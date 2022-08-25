@@ -1,5 +1,5 @@
 from aiogram.dispatcher import FSMContext
-from aiogram.types import CallbackQuery, ContentType
+from aiogram.types import CallbackQuery
 from aiogram.types import InlineKeyboardButton as IB
 from aiogram.types import InlineKeyboardMarkup as IM
 from aiogram.types import Message
@@ -16,6 +16,10 @@ async def full_name(msg: Message, state: FSMContext) -> None:
         room = rooms[data["room_id"]]
 
     if room.owner != msg.from_user.id:
+        return
+
+    if len(room.users) < 3:
+        await msg.reply(text.GAME_START_ERR)
         return
 
     room.start_game()
@@ -42,6 +46,7 @@ async def stopgame_wait(msg: Message, state: FSMContext) -> None:
 
     for user in room.users:
         await bot.send_message(user.id, text.GAME_STOPED)
+        await dp.current_state(chat=user.id, user=user.id).finish()
 
 
 @dp.message_handler(commands=["fail"], state=GameState.game)

@@ -8,8 +8,17 @@ from rooms import rooms
 
 
 @dp.message_handler(commands=["start"])
-async def start(msg: Message) -> None:
+async def start(msg: Message, state: FSMContext) -> None:
+    room_id = msg.get_args()
     await msg.reply(text.START)
+
+    if room_id != "" and room_id in rooms and not rooms[room_id].started:
+        async with state.proxy() as data:
+            data["create"] = False
+            data["room_id"] = room_id
+
+        await msg.reply(text.IMAGE)
+        await JoinState.first()
 
 
 @dp.message_handler(commands=["rules"], state="*")
