@@ -2,6 +2,7 @@ import logging
 
 from aiogram.utils.executor import start_polling
 
+import lib
 import handlers
 from bot import dp
 
