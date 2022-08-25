@@ -9,4 +9,3 @@ class JoinState(StatesGroup):
 class GameState(StatesGroup):
     wait = State()
     game = State()
-    die = State()

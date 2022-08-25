@@ -1,4 +1,4 @@
-START = """Я бот который поможет поиграть «Киллера».
+START = """Я бот который поможет сыграть в «Киллера».
 /rules - Правила
 /create - Создать игру"""
 
@@ -16,15 +16,22 @@ FULL_NAME_ERR = f"""Это не похоже на ФИО. {FULL_NAME}"""
 
 CANCEL = """Действие отменено."""
 
-JOIN = """Ты присоеденился к игре, а теперь жди пока она начнётся."""
+JOIN = """Ты присоеденился к игре, а теперь жди пока она начнётся.
+/invite - Получить инвайт ссылку
+/leave - Выйти из игры"""
 
-NEW = """Новый игрок присоеденился: <a href=\"tg://user?id={id}\">{full_name}</a>"""
+NEW_JOIN = (
+    """Новый игрок присоеденился: <a href=\"tg://user?id={id}\">{full_name}</a>"""
+)
+
+LEAVE = """Игрок вышел из игры: <a href=\"tg://user?id={id}\">{full_name}</a>"""
 
 CREATE = """Игра была создана.
 /startgame - Начать игру.
 /stopgame - Отменить игру.
-<code>/join {room_id}</code> - Присоедениться
-<code>https://t.me/ru_killer_game_bot?start={room_id}</code> - Инвайт ссылка"""
+/invite - Получить инвайт ссылку"""
+
+INVITE = """<code>https://t.me/ru_killer_game_bot?start={room_id}</code>"""
 
 ID_ERR = """ID комнаты не указан"""
 
@@ -46,6 +53,7 @@ TARGET = """Твоя цель: <a href=\"tg://user?id={id}\">{full_name}</a>"""
 
 FAIL_ACCEPT = """Подтвердите действие."""
 FAIL_ACCEPT_BTN = """Да меня убили."""
+FAIL_DECLINE_BTN = """Нет меня не убили."""
 FAIL = """Тебя убили, не расстраивайся в следущий раз повезёт больше.
 Убийств {kills}"""
 

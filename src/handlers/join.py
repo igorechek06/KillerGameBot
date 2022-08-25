@@ -1,10 +1,10 @@
 from uuid import uuid4
 
 from aiogram.dispatcher import FSMContext
-from aiogram.types import ContentType, Message
+from aiogram.types import BotCommandScopeChat, ContentType, Message
 
 from bot import bot, dp
-from libs import text
+from libs import commands, text
 from libs.room import Room
 from libs.states import GameState, JoinState
 from libs.user import User
@@ -45,13 +45,21 @@ async def full_name(msg: Message, state: FSMContext) -> None:
     await GameState.first()
 
     if create:
+        await bot.set_my_commands(
+            commands.wait_owner,
+            BotCommandScopeChat(msg.from_user.id),
+        )
         await msg.reply(text.CREATE.format(room_id=room_id))
     else:
+        await bot.set_my_commands(
+            commands.wait_user,
+            BotCommandScopeChat(msg.from_user.id),
+        )
         await msg.reply(text.JOIN)
         await bot.send_photo(
             room.owner,
             user.photo,
-            caption=text.NEW.format(full_name=user.full_name, id=user.id),
+            caption=text.NEW_JOIN.format(full_name=user.full_name, id=user.id),
         )
 
     async with state.proxy() as data:
@@ -65,6 +73,7 @@ async def full_name(msg: Message, state: FSMContext) -> None:
 async def cancel(msg: Message, state: FSMContext) -> None:
     await msg.reply(text.CANCEL)
     await state.finish()
+    await bot.delete_my_commands(BotCommandScopeChat(msg.from_user.id))
 
 
 @dp.message_handler(content_types=ContentType.ANY, state=JoinState.image)

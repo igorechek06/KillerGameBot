@@ -1,11 +1,11 @@
 from aiogram.dispatcher import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import BotCommandScopeChat, CallbackQuery
 from aiogram.types import InlineKeyboardButton as IB
 from aiogram.types import InlineKeyboardMarkup as IM
 from aiogram.types import Message
 
 from bot import bot, dp
-from libs import text
+from libs import commands, text
 from libs.states import GameState
 from rooms import rooms
 
@@ -31,11 +31,15 @@ async def full_name(msg: Message, state: FSMContext) -> None:
                 user.target.photo,
                 caption=text.TARGET.format(
                     full_name=user.target.full_name,
-                    id=user.id,
+                    id=user.target.id,
                 ),
             )
         await dp.current_state(chat=user.id, user=user.id).set_state(
             GameState.game.state,
+        )
+        await bot.set_my_commands(
+            commands.game,
+            BotCommandScopeChat(user.id),
         )
 
 
@@ -47,6 +51,35 @@ async def stopgame_wait(msg: Message, state: FSMContext) -> None:
     for user in room.users:
         await bot.send_message(user.id, text.GAME_STOPED)
         await dp.current_state(chat=user.id, user=user.id).finish()
+        await bot.delete_my_commands(BotCommandScopeChat(user.id))
+
+
+@dp.message_handler(commands=["leave"], state=GameState.wait)
+async def leave(msg: Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        room = rooms[data["room_id"]]
+        user = room.get(msg.from_user.id)
+
+    if room.owner == msg.from_user.id:
+        return
+
+    await bot.send_message(
+        room.owner,
+        text.LEAVE.format(
+            full_name=user.full_name,
+            id=msg.from_user.id,
+        ),
+    )
+    await state.finish()
+    await bot.delete_my_commands(BotCommandScopeChat(msg.from_user.id))
+
+
+@dp.message_handler(commands=["invite"], state=GameState.wait)
+async def invite(msg: Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        room_id = data["room_id"]
+
+    await msg.reply(text.INVITE.format(room_id=room_id))
 
 
 @dp.message_handler(commands=["fail"], state=GameState.game)
@@ -55,12 +88,21 @@ async def fail(msg: Message, state: FSMContext) -> None:
         text.FAIL_ACCEPT,
         reply_markup=IM().add(
             IB(text.FAIL_ACCEPT_BTN, callback_data="fail"),
+            IB(text.FAIL_ACCEPT_BTN, callback_data="fail"),
         ),
     )
 
 
 @dp.callback_query_handler(
-    lambda clb: clb.data == "fail",
+    lambda clb: clb.data == "fail:decline",
+    state=GameState.game,
+)
+async def fail_decline(clb: CallbackQuery) -> None:
+    await clb.message.delete()
+
+
+@dp.callback_query_handler(
+    lambda clb: clb.data == "fail:accept",
     state=GameState.game,
 )
 async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
@@ -101,11 +143,12 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
                 killer.target.photo,
                 caption=text.TARGET.format(
                     full_name=killer.target.full_name,
-                    id=user.id,
+                    id=killer.target.id,
                 ),
             )
 
     await state.finish()
+    await bot.delete_my_commands(BotCommandScopeChat(clb.from_user.id))
 
 
 @dp.message_handler(commands=["target"], state=GameState.game)
@@ -120,6 +163,6 @@ async def target(msg: Message, state: FSMContext) -> None:
             user.target.photo,
             caption=text.TARGET.format(
                 full_name=user.target.full_name,
-                id=user.id,
+                id=user.target.id,
             ),
         )
