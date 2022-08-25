@@ -11,6 +11,16 @@ from libs.user import User
 from rooms import rooms
 
 
+@dp.message_handler(
+    commands=["cancel"],
+    state=[JoinState.image, JoinState.full_name],
+)
+async def cancel(msg: Message, state: FSMContext) -> None:
+    await msg.reply(text.CANCEL)
+    await state.finish()
+    await bot.delete_my_commands(BotCommandScopeChat(msg.from_user.id))
+
+
 @dp.message_handler(content_types=ContentType.PHOTO, state=JoinState.image)
 async def image(msg: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
@@ -67,16 +77,6 @@ async def full_name(msg: Message, state: FSMContext) -> None:
 
     async with state.proxy() as data:
         data["room_id"] = room_id
-
-
-@dp.message_handler(
-    commands=["cancel"],
-    state=[JoinState.image, JoinState.full_name],
-)
-async def cancel(msg: Message, state: FSMContext) -> None:
-    await msg.reply(text.CANCEL)
-    await state.finish()
-    await bot.delete_my_commands(BotCommandScopeChat(msg.from_user.id))
 
 
 @dp.message_handler(content_types=ContentType.ANY, state=JoinState.image)
