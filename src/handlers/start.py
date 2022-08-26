@@ -16,11 +16,6 @@ async def join_state(msg: Message) -> None:
     )
 
 
-@dp.message_handler(commands=["test"])
-async def test(msg: Message, state: FSMContext) -> None:
-    await msg.reply(rooms)
-
-
 @dp.message_handler(commands=["start"])
 async def start(msg: Message, state: FSMContext) -> None:
     room_id = msg.get_args()
