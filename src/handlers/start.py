@@ -1,5 +1,5 @@
 from aiogram.dispatcher import FSMContext
-from aiogram.types import BotCommandScopeChat, Message
+from aiogram.types import BotCommandScopeChat, ContentType, Message
 
 from bot import bot, dp
 from libs import commands, text
@@ -61,3 +61,8 @@ async def join(msg: Message, state: FSMContext) -> None:
         data["room_id"] = room_id
 
     await join_state(msg)
+
+
+@dp.message_handler(content_types=ContentType.ANY)
+async def any(msg: Message) -> None:
+    await bot.delete_my_commands(BotCommandScopeChat(msg.from_user.id))
