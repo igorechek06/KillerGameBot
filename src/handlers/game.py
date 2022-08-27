@@ -131,6 +131,9 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
 
         for user in room.users:
             await bot.send_message(user.id, t)
+            if user.alive:
+                await dp.current_state(chat=user.id, user=user.id).finish()
+                await bot.delete_my_commands(BotCommandScopeChat(user.id))
 
         rooms.pop(room_id)
 
@@ -151,8 +154,8 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
                 ),
             )
 
-    await state.finish()
-    await bot.delete_my_commands(BotCommandScopeChat(clb.from_user.id))
+        await state.finish()
+        await bot.delete_my_commands(BotCommandScopeChat(clb.from_user.id))
 
 
 @dp.callback_query_handler(

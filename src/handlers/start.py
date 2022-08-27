@@ -61,9 +61,3 @@ async def join(msg: Message, state: FSMContext) -> None:
         data["room_id"] = room_id
 
     await join_state(msg)
-
-
-@dp.message_handler(commands=["test"])
-async def test(msg: Message) -> None:
-    for i, g in rooms.items():
-        print(i, g.users)
