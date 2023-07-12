@@ -7,5 +7,6 @@ class JoinState(StatesGroup):
 
 
 class GameState(StatesGroup):
-    wait = State()
+    wait_start = State()
     game = State()
+    wait_end = State()

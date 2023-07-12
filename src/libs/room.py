@@ -14,13 +14,16 @@ class Room:
         self.started = False
 
     def start_game(self) -> None:
+        from rooms import save_rooms
+
         random.shuffle(self.users)
         for i in range(len(self.users)):
             user = self.users[i]
-            taget = self.users[(i + 1) % len(self.users)]
-            user.target = taget
-            taget.killer = user
+            target = self.users[(i + 1) % len(self.users)]
+            user.target = target
+            target.killer = user
         self.started = True
+        save_rooms()
 
     def get(self, user_id: int) -> User:
         for user in self.users:
@@ -28,5 +31,5 @@ class Room:
                 return user
         raise RuntimeError
 
-    def alives(self) -> int:
+    def count_alive(self) -> int:
         return len(list(filter(lambda u: u.alive, self.users)))

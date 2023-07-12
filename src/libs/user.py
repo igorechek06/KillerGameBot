@@ -20,6 +20,8 @@ class User:
         self.killer = None
 
     def die(self) -> None:
+        from rooms import save_rooms
+
         if self.killer is not None:
             self.killer.target = self.target
             self.killer.kills += 1
@@ -28,3 +30,4 @@ class User:
         self.target = None
         self.killer = None
         self.alive = False
+        save_rooms()

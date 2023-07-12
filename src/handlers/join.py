@@ -8,7 +8,7 @@ from libs import commands, text
 from libs.room import Room
 from libs.states import GameState, JoinState
 from libs.user import User
-from rooms import rooms
+from rooms import rooms, save_rooms
 
 
 @dp.message_handler(
@@ -52,17 +52,18 @@ async def full_name(msg: Message, state: FSMContext) -> None:
 
     user = User(msg.from_user.id, photo, full_name)
     room.users.append(user)
+    save_rooms()
     await GameState.first()
 
     if create:
         await bot.set_my_commands(
-            commands.wait_owner,
+            commands.wait_start_owner,
             BotCommandScopeChat(msg.from_user.id),
         )
         await msg.reply(text.CREATE.format(room_id=room_id))
     else:
         await bot.set_my_commands(
-            commands.wait_user,
+            commands.wait_start_user,
             BotCommandScopeChat(msg.from_user.id),
         )
         await msg.reply(text.JOIN)

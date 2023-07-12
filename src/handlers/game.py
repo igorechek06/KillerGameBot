@@ -7,10 +7,10 @@ from aiogram.types import Message
 from bot import bot, dp
 from libs import commands, text
 from libs.states import GameState
-from rooms import rooms
+from rooms import rooms, save_rooms
 
 
-@dp.message_handler(commands=["startgame"], state=GameState.wait)
+@dp.message_handler(commands=["startgame"], state=GameState.wait_start)
 async def full_name(msg: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         room = rooms[data["room_id"]]
@@ -43,22 +43,23 @@ async def full_name(msg: Message, state: FSMContext) -> None:
         )
 
 
-@dp.message_handler(commands=["stopgame"], state=GameState.wait)
+@dp.message_handler(commands=["stopgame"], state=GameState.wait_start)
 async def stopgame_wait(msg: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         room = rooms[data["room_id"]]
         rooms.pop(data["room_id"])
+        save_rooms()
 
     if room.owner != msg.from_user.id:
         return
 
     for user in room.users:
-        await bot.send_message(user.id, text.GAME_STOPED)
+        await bot.send_message(user.id, text.GAME_STOPPED)
         await dp.current_state(chat=user.id, user=user.id).finish()
         await bot.delete_my_commands(BotCommandScopeChat(user.id))
 
 
-@dp.message_handler(commands=["leave"], state=GameState.wait)
+@dp.message_handler(commands=["leave"], state=GameState.wait_start)
 async def leave(msg: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         room = rooms[data["room_id"]]
@@ -68,6 +69,7 @@ async def leave(msg: Message, state: FSMContext) -> None:
         return
 
     room.users.remove(user)
+    save_rooms()
 
     await msg.reply(text.LEAVE)
     await bot.send_photo(
@@ -82,7 +84,7 @@ async def leave(msg: Message, state: FSMContext) -> None:
     await bot.delete_my_commands(BotCommandScopeChat(msg.from_user.id))
 
 
-@dp.message_handler(commands=["invite"], state=GameState.wait)
+@dp.message_handler(commands=["invite"], state=GameState.wait_start)
 async def invite(msg: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         room_id = data["room_id"]
@@ -96,7 +98,7 @@ async def fail(msg: Message, state: FSMContext) -> None:
         text.FAIL_ACCEPT,
         reply_markup=IM().add(
             IB(text.FAIL_ACCEPT_BTN, callback_data="fail:accept"),
-            IB(text.FAIL_DECLINE_BTN, callback_data="decline"),
+            IB(text.FAIL_DECLINE_BTN, callback_data="fail:decline"),
         ),
     )
 
@@ -115,8 +117,8 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
     killer = user.killer
     user.die()
 
-    if room.alives() == 1:
-        t = text.GAME_FINISHD.format(
+    if room.count_alive() == 2:
+        t = text.GAME_FINISHED.format(
             stats="\n".join(
                 [
                     text.KILL_ENTRY.format(
@@ -124,18 +126,22 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
                         kills=u.kills,
                         id=u.id,
                     )
-                    for u in room.users
+                    for u in sorted(
+                        room.users,
+                        key=lambda u: (u.alive, u.kills),
+                        reverse=True,
+                    )
                 ]
             )
         )
 
         for user in room.users:
             await bot.send_message(user.id, t)
-            if user.alive:
-                await dp.current_state(chat=user.id, user=user.id).finish()
-                await bot.delete_my_commands(BotCommandScopeChat(user.id))
+            await dp.current_state(chat=user.id, user=user.id).finish()
+            await bot.delete_my_commands(BotCommandScopeChat(user.id))
 
         rooms.pop(room_id)
+        save_rooms()
 
     elif killer is not None:
         await clb.message.answer(text.FAIL.format(kills=user.kills))
@@ -154,12 +160,15 @@ async def fail_accept(clb: CallbackQuery, state: FSMContext) -> None:
                 ),
             )
 
-        await state.finish()
-        await bot.delete_my_commands(BotCommandScopeChat(clb.from_user.id))
+        await GameState.wait_end.set()
+        await bot.set_my_commands(
+            commands.wait_end,
+            BotCommandScopeChat(clb.from_user.id),
+        )
 
 
 @dp.callback_query_handler(
-    lambda clb: clb.data == "decline",
+    lambda clb: clb.data == "fail:decline",
     state=GameState.game,
 )
 async def fail_decline(clb: CallbackQuery) -> None:
@@ -181,3 +190,11 @@ async def target(msg: Message, state: FSMContext) -> None:
                 id=user.target.id,
             ),
         )
+
+
+@dp.message_handler(commands=["alive"], state=GameState.wait_end)
+async def alive(msg: Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        room = rooms[data["room_id"]]
+
+    await msg.answer(text.ALIVE.format(alive=room.count_alive()))

@@ -6,3 +6,8 @@ services:
     restart: "always"
     env_file:
       env.env
+    volumes:
+      - data:/app/data
+
+volumes:
+  data:

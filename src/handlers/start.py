@@ -31,7 +31,14 @@ async def start(msg: Message, state: FSMContext) -> None:
         await bot.delete_my_commands(BotCommandScopeChat(msg.from_user.id))
 
 
-@dp.message_handler(commands=["rules"], state=[None, GameState.game])
+@dp.message_handler(
+    commands=["rules"],
+    state=[
+        None,
+        GameState.game,
+        GameState.wait_end,
+    ],
+)
 async def rules(msg: Message) -> None:
     await msg.reply(text.RULES)
 
