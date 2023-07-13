@@ -11,7 +11,7 @@ from rooms import rooms, save_rooms
 
 
 @dp.message_handler(commands=["startgame"], state=GameState.wait_start)
-async def full_name(msg: Message, state: FSMContext) -> None:
+async def startgame(msg: Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         room = rooms[data["room_id"]]
 
