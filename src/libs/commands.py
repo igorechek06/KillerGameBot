@@ -15,11 +15,13 @@ wait_start_owner = [
     cmd("startgame", "Начать игру"),
     cmd("stopgame", "Остановить игру"),
     cmd("invite", "Получить инвайт ссылку"),
+    cmd("rules", "Правила"),
 ]
 
 wait_start_user = [
     cmd("invite", "Получить инвайт ссылку"),
     cmd("leave", "Выйти из игры"),
+    cmd("rules", "Правила"),
 ]
 
 game = [
@@ -30,4 +32,5 @@ game = [
 
 wait_end = [
     cmd("alive", "Сколько игроков осталось в живых"),
+    cmd("rules", "Правила"),
 ]
